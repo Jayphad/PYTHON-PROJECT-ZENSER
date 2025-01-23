@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Depth Check</title>
+    <style>
+        .container {
+            padding: 20px;
+            width: fit-content;
+            margin: auto;
+            border: 2px solid;
+            background-color: rgb(224, 132, 224);
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        button, input {
+            height: 30px;
+            font-size: 12pt;
+        }
+        button {
+            background-color: rgb(186, 24, 176);
+            border: none;
+            box-shadow: 0 0 5px rgb(75, 18, 73);
+            cursor: pointer;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid black;
+            background-color: rgb(240, 240, 240);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Check Water Depth</h1>
+    <form id="waterDepthForm">
+        <label for="city_name">Enter City Name:</label>
+        <input type="text" id="city_name" name="city_name" autocomplete="off" required>
+        <button type="submit">Check</button>
+    </form>
+
+    <div class="result" id="result"></div>
+</div>
+
+<script>
+    // Handle form submission
+    document.getElementById("waterDepthForm").addEventListener("submit", async function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const cityName = document.getElementById("city_name").value;
+        const resultDiv = document.getElementById("result");
+
+        // Clear previous results
+        resultDiv.innerHTML = "";
+
+        try {
+            // Make a POST request to the Flask API
+            const response = await fetch("/api/water-level", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ city_name: cityName })
+            });
+
+            // Parse JSON response
+            const data = await response.json();
+
+            if (response.ok) {
+                // Display the result in the browser
+                resultDiv.innerHTML = `
+                    <h2>Water Depth at ${data.city_name}:</h2>
+                    <p>The water depth is ${data.water_depth} meters.</p>
+                    <p>${data.message}</p>
+                `;
+            } else {
+                // Handle errors (e.g., city not found or validation errors)
+                resultDiv.innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
+            }
+        } catch (error) {
+            // Handle network or other errors
+            resultDiv.innerHTML = `<p style="color: red;">Error: Failed to fetch data.</p>`;
+        }
+    });
+</script>
+</body>
+</html>
